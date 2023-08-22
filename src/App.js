@@ -1,7 +1,6 @@
 import {
-  BrowserRouter as Router,
   Routes, Route, Link,
-  useMatch
+  useMatch, useNavigate
 } from "react-router-dom";
 import { useState } from 'react'
 
@@ -19,7 +18,7 @@ const Menu = props => {
 
       <Routes>
         <Route path="/anecdotes" element={<AnecdoteList anecdotes={props.anecdotes}/>}>anecdotes</Route>
-        <Route path="/create" element={<CreateNew />}>create new</Route>
+        <Route path="/create" element={<CreateNew addNew={props.addNew} sendNotification={props.sendNotification}/>}>create new</Route>
         <Route path="/about" element={<About />}>about</Route>
         <Route path="/anecdotes/:id" element={<Anecdote anecdote={props.anecdote}/>}>about</Route>
       </Routes>
@@ -76,6 +75,7 @@ const CreateNew = (props) => {
   const [author, setAuthor] = useState('')
   const [info, setInfo] = useState('')
 
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -84,7 +84,9 @@ const CreateNew = (props) => {
       author,
       info,
       votes: 0
-    })
+    });
+    props.sendNotification(`a new anecdote "${content}" has been created`)
+    navigate("/anecdotes");
   }
 
   return (
@@ -110,6 +112,15 @@ const CreateNew = (props) => {
 
 }
 
+const Notification = props => {
+
+  return (
+    <div>
+      {props.notification}
+    </div>
+  )
+}
+
 const App = () => {
   const [anecdotes, setAnecdotes] = useState([
     {
@@ -130,6 +141,12 @@ const App = () => {
 
   const [notification, setNotification] = useState('')
 
+  const showNotification = message => {
+    setNotification(message);
+    setTimeout(() => {
+      setNotification("");
+    }, 5000);
+  }
 
   const addNew = (anecdote) => {
     anecdote.id = Math.round(Math.random() * 10000)
@@ -160,7 +177,8 @@ const App = () => {
   return (
     <div>
       <h1>Software anecdotes</h1>
-      <Menu anecdotes={anecdotes} anecdote={anecdote}/>
+      <Menu anecdotes={anecdotes} anecdote={anecdote} addNew={addNew} sendNotification={showNotification}/>
+      <Notification notification={notification}/>
       <Footer />
     </div>
   );
